@@ -1,12 +1,24 @@
 # streaming-gbq
 We are exploring an architecture where we want stream a large file to google big query.
 
-## Setup
+## Architecture
 This project comprise of four services which are all containerized.
 * Redis Server, `redis` (Queue)
 * Stream Data generator, `stream_generator` (Publisher)
 * Stream Data Processor, `stream_processor` (Consumer)
 * Monitoring, `monitoring` (Monitoring/Alerting)
+
+This architecture is based on a publisher-subscriber design. Here `stream_generator` is a publisher which is sending generating data points (chunks of 500 rows from the given csv file) to Message Queue.
+
+Redis is being used as a `message queue` broker. Here, we are using a single key of List type and leveraging it as a queue.
+
+`stream_processor` is the subscriber of message queue. It takes message from queue, perform processing and send it to Data Warehouse e.g. to Google Big Query, or any other database.
+
+Moreover, a simple `monitoring` service is also put in place which periodically monitor `message queue` and if number of messages increases a given threshold, then ideally an appropriate alert or action can be devised. We are outputting a simple error log here.
+
+![Pub-Sub Architecture](./docs/images/pub_sub_architecture.jpg)
+
+## Setup
 
 ### Preinstallations
 `docker-compose` is used as container orchestration service.
@@ -63,6 +75,8 @@ we need to attach some specific external service to redis server.
 3. Redis is used as a queue for demo purposes. Ideally, it should be replaced by much performant and advanced queuing solutions like RabbitMQ, AWS SNS/SQS, etc. Furthermore, this can further be streamlined with using industry-standard streaming services like AWS Kinesis, Apache Kafka, etc.
 
 4. Instead of using `stream_generator` and corresponding `stream_processor` in Pub-Sub architecture, for similar use cases, we can directly leverage and explore technologies specialized in stream processing like [structured streaming](https://spark.apache.org/docs/latest/structured-streaming-programming-guide.html). Moreover, for MPP data warehouses like GBQ, we can also perform a bulk data load operation directly from data lake e.g. [prepare statement in Snowflake](https://docs.snowflake.com/en/user-guide/data-load-considerations-prepare.html).
+
+5. Although `docker-compose` is good enough for local/staging deployment, however for better docker image versioning and tagging, we should use Container Registries like ECR, dockerhub (private), etc.
 
 ### CI and tests
 1. To keep code quality, we can use CI pipeline like `GitHub actions` to test pytests, linting and similar sanity checks.
