@@ -54,7 +54,8 @@ class RedisClient:
 
     def get_queue_size(self) -> int:
         """ Get redis queue size """
-        return self.__db.llen(REDIS_QUEUE_NAME)
+        queue_size = self.__db.llen(REDIS_QUEUE_NAME)
+        return 0 if queue_size is None else queue_size
 
     def is_queue_empty(self) -> bool:
         """ This will return True if there are 0 items in queue otherwise False """

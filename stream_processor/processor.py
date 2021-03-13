@@ -1,6 +1,7 @@
 from time import sleep
 from typing import List
 import json
+from json import JSONDecodeError
 from db_connectors.redis_client import RedisClient
 from db_connectors.gbq_client import GBQClient
 from config.config import SLEEP_TIMEOUT
@@ -25,10 +26,21 @@ def get_formatted_rows(raw_records: dict) -> List[dict]:
                         {"events": list, "batch": int, "headers": list}
                         and `events` key holds batch of events
     """
-    print("Processing Batch:", raw_records["batch"])
-    rows = list(map(lambda record: json.loads(record[1]), raw_records["events"]))
-
-    return rows
+    # TODO: Check of incoming data quality. We should check message format and if required types
+    # corresponding a schema registry.
+    # Ideally one can raise hard exception or fail softly. Former one might be preferred based
+    # on SLAs and quality policies.
+    try:
+        print("Processing Batch:", raw_records["batch"])
+        rows = list(map(lambda record: json.loads(record[1]), raw_records["events"]))
+        return rows
+    except JSONDecodeError:
+        print("ERROR: One or more records are not in correct JSON encoded format.")
+    except KeyError:
+        print("ERROR: `events` or `batch` key not present in input records data")
+    
+    # Failing softly
+    return []
 
 
 def main():
@@ -38,6 +50,8 @@ def main():
     Step 2: Format the records
     Step 3: Send request to Bigquery to insert results into table
     """
+    # TODO: In case of process failure, we should gracefully put the unprocessed
+    # message back to redis queue.
     raw_records = get_queue_item()
     if raw_records:
         rows_to_insert = get_formatted_rows(raw_records)

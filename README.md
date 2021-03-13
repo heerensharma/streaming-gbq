@@ -8,7 +8,7 @@ This project comprise of four services which are all containerized.
 * Stream Data Processor, `stream_processor` (Consumer)
 * Monitoring, `monitoring` (Monitoring/Alerting)
 
-This architecture is based on a publisher-subscriber design. Here `stream_generator` is a publisher which is sending generating data points (chunks of 500 rows from the given csv file) to Message Queue.
+This architecture is based on a publisher-subscriber design. Here `stream_generator` is a publisher which is sending generating data points (chunks of 500 rows from the given csv file) to Message Queue. For this demo, given data file is being read from local file system which is mounted in corresponding docker container.
 
 Redis is being used as a `message queue` broker. Here, we are using a single key of List type and leveraging it as a queue.
 
@@ -27,7 +27,7 @@ Please install docker-compose (In mac/Linux system) using pip
 
 `pip install docker-compose`
 
-**Note**: Please change the placeholder `<enter-data-dir-path>` value in docker-compose.yaml which corresponds to "stream_generator" container. Change this value to folder location of given csv file. E.g. if `data_source.csv` resides in `/Users/name/Downloads/` folder, then change the value of placeholder to this path.
+**Note**: Please change the placeholder `<enter-data-dir-path>` value in docker-compose.yaml which corresponds to "stream_generator" container. This value should point to the folder location of given csv file. E.g. if `data_source.csv` resides in `/Users/name/Downloads/` folder, then change the value of placeholder to this path.
 Alternatively, one can also change the `config/config.py` file, for appropriate file_name changes.
 
 ### Run Services

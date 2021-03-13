@@ -13,13 +13,17 @@ redis_client = RedisClient()
 FILE_PATH = "/".join([FILE_STREAM_DIRECTORY, FILE_NAME])
 
 
-def get_formatted_chunk_data(chunk: DataFrame) -> dict:
+def get_formatted_chunk_data(chunk: DataFrame, batch_number: int) -> dict:
     """
     For optimising over IO from message broker i.e. redis queue,
     we are aggregating chunks and then creating one payload/message
     for our redis queue.
     """
-    return {"headers": chunk.columns.values.tolist(), "events": chunk.values.tolist()}
+    return {
+        "batch": batch_number,
+        "headers": chunk.columns.values.tolist(),
+        "events": chunk.values.tolist()
+    }
 
 
 def push_events_data_to_queue(events_data: dict):
@@ -39,8 +43,7 @@ def main():
     batch_number = 1
     print("Processing File:", FILE_PATH)
     for chunk in pd.read_csv(FILE_PATH, chunksize=CSV_CHUNK_SIZE):
-        events_data = get_formatted_chunk_data(chunk)
-        events_data["batch"] = batch_number
+        events_data = get_formatted_chunk_data(chunk, batch_number)
         # Pushing data to message queue
         push_events_data_to_queue(events_data)
         print(f"Batch Nr. {batch_number} : Sent to the Queue")

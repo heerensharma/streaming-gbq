@@ -14,3 +14,7 @@ RUN mkdir /main_data_bucket
 COPY . /src
 ENV PYTHONPATH "${PYTHONPATH}:/src"
 ENV PYTHONUNBUFFERED "1"
+
+# Unit tests
+RUN pytest /src/tests
+RUN echo "All tests passed!"

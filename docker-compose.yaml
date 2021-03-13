@@ -13,6 +13,7 @@ services:
       - redis
     volumes:
       - <enter-data-dir-path>:/main_data_bucket
+      # - ../sample_data/:/main_data_bucket
     restart: always
     command: python /src/stream_generator/generator.py
   stream_processor:

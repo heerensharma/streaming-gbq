@@ -6,6 +6,17 @@ from time import sleep
 redis_client = RedisClient()
 
 
+def check_queue_size(current_queue_size: int) -> str:
+    """ Checks if messages are piling up in queue which indicates two scenarios
+        1. Stream Processor(s) are misbehaving
+        2. Sudden burst in messages which demands processors' scaling
+    """
+    if current_queue_size > QUEUE_LIMIT:
+        return f"ALERT: QUEUE FILLING UP -> {current_queue_size}"
+    else:
+        return "Queue health checks passed"
+
+
 def main():
     """
     This is a very simple monitoring script.
@@ -15,10 +26,8 @@ def main():
     and alerting dashboards.
     """
     current_queue_size = redis_client.get_queue_size()
-    if current_queue_size > QUEUE_LIMIT:
-        print("ALERT: QUEUE FILLING UP ->", current_queue_size)
-    else:
-        print("Queue health checks passed")
+    # TODO: Based on use case generate and handle appropriate output
+    print(check_queue_size(current_queue_size))
 
 
 if __name__ == "__main__":
